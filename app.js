@@ -4,9 +4,10 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const Telegraf = require('telegraf');
+require('dotenv').config();
 
 //INSERTADO TOKEN
-const bot = new Telegraf('1467289287:AAGKq5OkYFMaRsX6ZqguQD4pBUuybIYpMRI');
+const bot = new Telegraf(process.env.SECRET_KEY);
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
@@ -18,7 +19,7 @@ require('./dbConfig');
 
 app.use(bot.webhookCallback('/secret-path'));
 // Modifica la URL
-bot.telegram.setWebhook('https://098d29323877.ngrok.io/secret-path');
+bot.telegram.setWebhook('https://af7cc01153e1.ngrok.io/secret-path');
 
 app.post('/secret-path', (req, res) => {
   res.end('Finaliza petición')
