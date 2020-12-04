@@ -5,24 +5,77 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const Telegraf = require('telegraf');
 
-const bot = new Telegraf('-- INSERTA AQUÍ TU TOKEN --');
+//INSERTADO TOKEN
+const bot = new Telegraf('1467289287:AAGKq5OkYFMaRsX6ZqguQD4pBUuybIYpMRI');
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
+const User = require('./models/user');
 
 const app = express();
 
-app.use(bot.webhookCallback('/secret-path'))
+require('./dbConfig');
+
+app.use(bot.webhookCallback('/secret-path'));
 // Modifica la URL
-bot.telegram.setWebhook('https://b2d5afa5.ngrok.io/secret-path')
+bot.telegram.setWebhook('https://098d29323877.ngrok.io/secret-path');
 
 app.post('/secret-path', (req, res) => {
   res.end('Finaliza petición')
 })
 
+bot.use(async (ctx, next) => {
+
+  const user = {
+    id: ctx.message.from.id,
+    username: ctx.message.from.username,
+    first_name: ctx.message.from.first_name,
+    last_name: ctx.message.from.last_name
+  };
+
+
+  const usuarios = await User.find({
+    id: user.id
+  })
+
+  if (usuarios.length === 0) {
+    User.create(user).
+      then((userInMongo) => console.log(userInMongo))
+      .catch(error => console.log(error));
+
+  }
+  await next()
+});
+
 bot.command('test', (ctx) => {
   ctx.reply('Hola amiguito');
 });
+
+bot.command('info', (ctx) => {
+  ctx.reply('/test /info /creators');
+});
+bot.command('creators', (ctx) => {
+  ctx.reply(`
+  Este es un chatBot creado por los ingenieros de software del Bootcamp Neoland:
+  - Lidia Alonso
+  - Sofia Martín
+  - Alvaro Venegas
+  - Juan Miguel Luces  
+  `);
+});
+
+bot.command('random', async (ctx) => {
+  let msg = ctx.message.text;
+  msg = msg.slice(7);
+
+  const usuarios = await User.find();
+  const usuarioId = usuarios[Math.floor(Math.random() * usuarios.length)].id
+
+  bot.telegram.sendMessage(usuarioId, msg);
+  ctx.reply('hemos enviado tu mensaje a un usuario aleatorio, jo jo jo, payaso');
+
+})
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
